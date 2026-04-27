@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.models.entities import ChatHistory, ChatMessage, ChatSession, ExpertQuery, User, UserRole
 from app.services.ai_service import AIService
+from app.services.manual_knowledge import find_manual_answer
 from app.services.vector_store import vector_store
 
 
@@ -75,10 +76,15 @@ def delete_chat_session(db: Session, user: User, session_id: int) -> None:
 def generate_answer_payload(question: str, language: str) -> dict:
     settings = get_settings()
     if vector_store.index is None or vector_store.index.ntotal == 0:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="No knowledge base is available. Upload documents first.",
-        )
+        manual_answer = find_manual_answer(question)
+        if manual_answer:
+            return manual_answer
+        return {
+            "answer": "I don't know",
+            "confidence": 0.0,
+            "sources": [],
+            "escalated": True,
+        }
 
     ai_service = AIService(settings)
     query_embedding = ai_service.embed_query(question)
@@ -89,6 +95,9 @@ def generate_answer_payload(question: str, language: str) -> dict:
     ]
 
     if not filtered_matches:
+        manual_answer = find_manual_answer(question)
+        if manual_answer:
+            return manual_answer
         return {
             "answer": "I don't know",
             "confidence": 0.0,

@@ -31,19 +31,22 @@ def extract_text_from_pdf(file_path: str) -> str:
     document = fitz.open(file_path)
     pages: list[str] = []
 
-    for page in document:
-        page_text = clean_text(page.get_text("text"))
-        if len(page_text) >= 60:
-            pages.append(page_text)
-            continue
+    try:
+        for page in document:
+            page_text = clean_text(page.get_text("text"))
+            if len(page_text) >= 60:
+                pages.append(page_text)
+                continue
 
-        pixmap = page.get_pixmap(matrix=fitz.Matrix(2, 2))
-        temp_image_path = Path(file_path).with_suffix(f".page-{page.number}.png")
-        pixmap.save(temp_image_path.as_posix())
-        try:
-            pages.append(extract_text_from_image(str(temp_image_path)))
-        finally:
-            temp_image_path.unlink(missing_ok=True)
+            pixmap = page.get_pixmap(matrix=fitz.Matrix(2, 2))
+            temp_image_path = Path(file_path).with_suffix(f".page-{page.number}.png")
+            pixmap.save(temp_image_path.as_posix())
+            try:
+                pages.append(extract_text_from_image(str(temp_image_path)))
+            finally:
+                temp_image_path.unlink(missing_ok=True)
+    finally:
+        document.close()
 
     return clean_text(" ".join(pages))
 

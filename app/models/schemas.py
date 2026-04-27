@@ -113,6 +113,11 @@ class UploadResponse(BaseModel):
     message: str
 
 
+class ManualDocumentCreate(BaseModel):
+    title: str | None = Field(default=None, max_length=255)
+    content: str = Field(min_length=10, max_length=200000)
+
+
 class DocumentRead(BaseModel):
     id: int
     title: str

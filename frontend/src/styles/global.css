@@ -1600,6 +1600,8 @@ select {
 .landing-copy {
   display: grid;
   gap: 22px;
+  justify-items: center;   /* centers horizontally */
+  text-align: center;      /* centers text */
 }
 
 .landing-kicker {
@@ -2015,6 +2017,19 @@ box-shadow: 0 30px 60px rgba(10, 25, 47, 0.35);
     flex-direction: column;
     align-items: stretch;
   }
+
+  .landing-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  justify-content: space-between;
+  padding: 18px 32px;
+
+  background: rgba(10, 25, 47, 0.95); /* deep navy */
+  backdrop-filter: blur(14px);
+
+  border-bottom: 1px solid rgba(244, 196, 48, 0.2); /* gold line */
+}
 
   .dashboard-hero-copy,
   .dashboard-hero-strip,

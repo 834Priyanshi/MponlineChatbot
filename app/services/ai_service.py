@@ -65,7 +65,6 @@ class AIService:
             result = client.models.embed_content(
                 model=self.settings.gemini_embedding_model,
                 contents=text,
-                config=self._gemini_embed_config("RETRIEVAL_DOCUMENT"),
             )
             embeddings.append(list(result.embeddings[0].values))
         return embeddings

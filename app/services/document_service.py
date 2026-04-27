@@ -10,7 +10,7 @@ from app.models.entities import Document, User
 from app.services.ai_service import AIService
 from app.services.ocr_service import extract_text
 from app.services.vector_store import vector_store
-from app.utils.chunking import chunk_text
+from app.utils.chunking import chunk_text, clean_text
 
 
 ALLOWED_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg", ".tiff", ".bmp"}
@@ -90,6 +90,54 @@ def ingest_document(db: Session, file: UploadFile, user: User, title: str | None
         if os.path.exists(saved_path):
             os.remove(saved_path)
         raise
+
+
+def ingest_text_document(db: Session, content: str, user: User, title: str | None = None) -> Document:
+    cleaned_text = clean_text(content)
+    if not cleaned_text:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Content is empty or could not be cleaned for indexing.",
+        )
+
+    settings = get_settings()
+    chunks = chunk_text(
+        cleaned_text,
+        chunk_size_words=settings.max_chunk_words,
+        overlap_words=settings.chunk_overlap_words,
+    )
+    if not chunks:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="The provided text did not produce any searchable text chunks.",
+        )
+
+    ai_service = AIService(settings)
+    embeddings = ai_service.embed_texts(chunks)
+
+    document = Document(
+        title=(title or "manual text").strip()[:255],
+        filename=(title or "manual-text").strip()[:255],
+        file_path=f"manual:{uuid.uuid4().hex}",
+        extracted_text=cleaned_text,
+        chunk_count=len(chunks),
+        uploaded_by=user.id,
+    )
+    db.add(document)
+    db.commit()
+    db.refresh(document)
+
+    metadata = [
+        {
+            "document_id": document.id,
+            "document_name": document.title or document.filename,
+            "chunk_index": index,
+            "text": chunk,
+        }
+        for index, chunk in enumerate(chunks)
+    ]
+    vector_store.add_embeddings(embeddings, metadata)
+    return document
 
 
 def list_documents(db: Session) -> list[Document]:

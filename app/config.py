@@ -39,7 +39,7 @@ class Settings(BaseSettings):
 
     gemini_api_key: str | None = None
     gemini_chat_model: str = "gemini-1.5-flash"
-    gemini_embedding_model: str = "models/embedding-001"
+    gemini_embedding_model: str = "models/text-embedding-004"
 
     vector_store_path: str = str(BASE_DIR / "app" / "data" / "faiss.index")
     vector_metadata_path: str = str(BASE_DIR / "app" / "data" / "faiss_metadata.json")

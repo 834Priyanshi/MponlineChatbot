@@ -53,7 +53,7 @@ function LoginPage() {
     <div className="auth-page">
       <div className="auth-card">
         <div>
-          <p className="eyebrow">AI + RAG</p>
+          <p className="eyebrow"></p>
           <h2>MPOnline FAQ Chatbot</h2>
           <p className="muted">
             Sign in with your email and password. New users can register with just email and password.

@@ -8,8 +8,8 @@ from app.config import get_settings
 from app.database import get_db
 from app.dependencies import require_roles
 from app.models.entities import User, UserRole
-from app.models.schemas import DocumentRead, UploadResponse
-from app.services.document_service import delete_document, ingest_document, list_documents
+from app.models.schemas import DocumentRead, ManualDocumentCreate, UploadResponse
+from app.services.document_service import delete_document, ingest_document, ingest_text_document, list_documents
 from app.services.vector_store import vector_store
 
 
@@ -30,6 +30,22 @@ def upload_document(
         filename=document.filename,
         chunk_count=document.chunk_count,
         message="Document uploaded and indexed successfully.",
+    )
+
+
+@router.post("/manual-upload", response_model=UploadResponse)
+def upload_manual_document(
+    manual_document: ManualDocumentCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles(UserRole.ADMIN)),
+) -> UploadResponse:
+    document = ingest_text_document(db, manual_document.content, current_user, manual_document.title)
+    return UploadResponse(
+        document_id=document.id,
+        title=document.title or document.filename,
+        filename=document.filename,
+        chunk_count=document.chunk_count,
+        message="Manual document added and indexed successfully.",
     )
 
 
