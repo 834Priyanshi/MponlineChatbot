@@ -222,7 +222,7 @@ function LandingPage() {
               ))}
             </div>
 
-            <div className="landing-grievance-banner">
+            {/* <div className="landing-grievance-banner">
               <strong>Grievance Registration</strong>
               <p>
                 {user
@@ -236,7 +236,7 @@ function LandingPage() {
               >
                 {user ? "Open Grievance Page" : "Login For Grievance"}
               </button>
-            </div>
+            </div> */}
           </div>
         </section>
 
